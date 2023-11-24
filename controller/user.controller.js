@@ -28,5 +28,23 @@ const signupUser = async (req, res) => {
   }
 };
 
+// Login user
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const getuser = await User.findOne({ email: email });
+    const hashPass = bcrypt.compareSync(password, getuser.password);
+    if (hashPass) {
+      // JWT Sign
+      const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN);
+      res.send({ status: 200, token, user: getuser });
+    } else {
+      res.status(401).json({ message: "Email or password is Invalid" });
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
 
-module.exports = { signupUser };
+
+module.exports = { signupUser, loginUser };
