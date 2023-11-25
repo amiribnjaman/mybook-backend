@@ -1,18 +1,20 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const userRouter = require("./route/user.router");
 require("./config/db");
-const router = express.Router();
+const userRouter = require("./route/user.router");
+const postRouter = require("./route/post.router");
 
 // Middlewares
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Routes
+// Application Routes
 // User route
 app.use("/api/user", userRouter);
+// Post route
+app.use("/api/post", postRouter);
 
 // Testing route
 app.get("/", (req, res) => {
