@@ -1,20 +1,22 @@
-const User = require("../model/userModel");
+const User = require("../model/user.model");
 const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 require("dotenv").config();
 
 
+
 // Create OR Signup a user
 const signupUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { firstName, surName, email, password } = req.body;
   try {
     const getuser = await User.findOne({ email: email });
     if (!getuser) {
       const hashPass = bcrypt.hashSync(password, saltRounds);
       const newUser = new User({
         id: uuidv4(),
-        name,
+        firstName,
+        surName,
         email,
         password: hashPass,
       });
@@ -30,14 +32,14 @@ const signupUser = async (req, res) => {
 
 // Login user
 const loginUser = async (req, res) => {
+  console.log(req.body)
   const { email, password } = req.body;
   try {
     const getuser = await User.findOne({ email: email });
     const hashPass = bcrypt.compareSync(password, getuser.password);
     if (hashPass) {
-      // JWT Sign
-      const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN);
-      res.send({ status: 200, token, user: getuser });
+
+      res.send({ status: 200, message: "Logedin successfully!" });
     } else {
       res.status(401).json({ message: "Email or password is Invalid" });
     }
