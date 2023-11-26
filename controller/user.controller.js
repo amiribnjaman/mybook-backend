@@ -6,7 +6,6 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 
-
 // Create OR Signup a user
 const signupUser = async (req, res) => {
   const { firstName, surName, email, password } = req.body;
@@ -36,12 +35,19 @@ const signupUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
+    console.log("enter");
     const getuser = await User.findOne({ email: email });
-    const hashPass = bcrypt.compareSync(password, getuser.password);
-    if (hashPass) {
+    // const hashPass = bcrypt.hashSync(password, saltRounds);
+    const comparePass = bcrypt.compareSync(password, getuser.password);
+    if (comparePass) {
       // JWT Sign
       const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN);
-      res.cookie("Token", token, { httpOnly: false }).send({ status: 200, message: "Logedin successfully!" });
+      res.cookie("Token", token, { httpOnly: false });
+      res.send({
+        status: 200,
+        userId: getuser.id,
+        message: "Logedin successfully!",
+      });
     } else {
       res.status(401).json({ message: "Email or password is Invalid" });
     }
@@ -49,6 +55,5 @@ const loginUser = async (req, res) => {
     res.status(500).send(error.message);
   }
 };
-
 
 module.exports = { signupUser, loginUser };
