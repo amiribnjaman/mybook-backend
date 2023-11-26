@@ -3,7 +3,7 @@ const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 require("dotenv").config();
-var jwt = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 
 
 // Create OR Signup a user
@@ -32,7 +32,6 @@ const signupUser = async (req, res) => {
 
 // Login user
 const loginUser = async (req, res) => {
-  console.log(req.body)
   const { email, password } = req.body;
   try {
     const getuser = await User.findOne({ email: email });
@@ -40,7 +39,7 @@ const loginUser = async (req, res) => {
     if (hashPass) {
       // JWT Sign
       const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN);
-      res.send({ status: 200, token, message: "Logedin successfully!" });
+      res.cookie("Token", token, { httpOnly: false }).send({ status: 200, message: "Logedin successfully!" });
     } else {
       res.status(401).json({ message: "Email or password is Invalid" });
     }
