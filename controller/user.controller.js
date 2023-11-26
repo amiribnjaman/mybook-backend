@@ -49,11 +49,58 @@ const loginUser = async (req, res) => {
         message: "Logedin successfully!",
       });
     } else {
-      res.status(401).json({ message: "Email or password is Invalid" });
+      res.status(401).json({status: '401', message: "Email or password is Invalid" });
     }
   } catch (error) {
     res.status(500).send(error.message);
   }
 };
 
-module.exports = { signupUser, loginUser };
+// Forgot password email check
+const forgotPassCheck = async (req, res) => {
+const { email } = req.body;
+  try {
+    const getuser = await User.findOne({ email: email });
+    if (getuser) {
+      res.json({status: '200', message: "Email matched. Now set new password!" });
+    } else {
+      res.status(401).json({status: '401', message: "Email is Invalid" });
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+}
+
+
+// Reset Password 
+const resetPassword = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const getuser = await User.findOne({ email: email });
+    if (getuser) {
+      const hashPass = bcrypt.hashSync(password, saltRounds);
+      const updateData = await User.updateOne(
+        { email: email },
+        {
+          $set: {
+            password: hashPass,
+          },
+        }
+      );
+      res.json({
+        status: "201",
+        data: updateData,
+        message: "Password reset. Login now.",
+      });
+    } else {
+      res.status(401).json({ status: "401", message: "Email is Invalid" });
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+
+
+
+module.exports = { signupUser, loginUser, forgotPassCheck, resetPassword };
