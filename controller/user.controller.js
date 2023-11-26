@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 
 // Create OR Signup a user
@@ -14,6 +15,7 @@ const signupUser = async (req, res) => {
     if (!getuser) {
       const hashPass = bcrypt.hashSync(password, saltRounds);
       const newUser = new User({
+        _id: new mongoose.Types.ObjectId(),
         id: uuidv4(),
         firstName,
         surName,

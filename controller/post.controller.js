@@ -12,6 +12,7 @@ const createPost = async (req, res) => {
       const newPost = new Post({
         id: uuidv4(),
         post,
+        userName: 'Amir Hosen',
         userEmail: 'amir@mail.com',
         imgUrl,
       });
@@ -29,7 +30,7 @@ const createPost = async (req, res) => {
 // Get all post
 const getAllPost = async (req, res) => {
   try {
-      const allPost = await Post.find({});
+      const allPost = await Post.find({}).sort({createOn: -1});
       res.send({ status: 200, data: allPost });
     } catch (error) {
     res.status(500).send(error.message);
@@ -80,4 +81,4 @@ const deletePost = async (req, res) => {
 };
 
 
-module.exports = { createPost };
+module.exports = { createPost, getAllPost };
