@@ -31,7 +31,7 @@ const createPost = async (req, res) => {
   }
 };
 
-// Get all post
+// Get all posts
 const getAllPost = async (req, res) => {
   try {
     const allPost = await Post.find({}).sort({ createOn: -1 });
@@ -91,6 +91,14 @@ const deletePost = async (req, res) => {
   }
 };
 
+
+{
+  /*
+   **
+   ** HERE STARTS COMMENT API'S
+   **
+   */
+}
 // Create a new comment 
 const createComment = async (req, res) => {
   const { postId, comment, userId } = req.body;
@@ -119,11 +127,39 @@ const createComment = async (req, res) => {
   }
 };
 
+
+// Delete a comment 
+const deleteComment = async (req, res) => {
+  const { userId, commentId, postid } = req.params;
+  try {
+    const post = await Post.find({ id: postid })
+    const comment = post[0]?.comments?.find(com => com.userId == userId);
+    if (comment.userId == userId) {
+      console.log("ok");
+       const filteredComments = post[0]?.comments?.filter(
+         (com) => com.id !== commentId
+       );
+      await Post.updateOne(
+         { id: postid },
+         {
+           $set: {
+             comments: filteredComments,
+           },
+         }
+      );
+       res.send({ status: 200, message: 'Comment deleted.' });
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
 module.exports = {
   createPost,
   getAllPost,
-  createComment,
   updatePost,
   deletePost,
   getOnePost,
+  createComment,
+  deleteComment,
 };
