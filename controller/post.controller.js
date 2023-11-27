@@ -4,21 +4,22 @@ const { v4: uuidv4 } = require("uuid");
 
 // Create a new post
 const createPost = async (req, res) => {
-  const { post, imgUrl } = req.body;
+  const { post, imgUrl, userId } = req.body;
   try {
-    // const getUser = await User.findOne({ email: email });
+    const getUser = await User.findOne({ id: userId });
+    console.log(getUser, req.body)
     // if (getUser) {
     const newPost = new Post({
       id: uuidv4(),
       post,
-      userName: "Amir Hosen",
-      userEmail: "amir@mail.com",
+      userName: getUser.firstName + ' ' + getUser.surName,
+      userId,
       imgUrl,
     });
     await newPost.save();
     res.send({
       status: 201,
-      message: "Post created succeffullly.",
+      message: "Post created successfully.",
       data: newPost,
     });
     // }
@@ -70,6 +71,7 @@ const createComment = async (req, res) => {
               postId,
               userId,
               comment,
+              replies: []
             },
           ],
         },
@@ -83,15 +85,18 @@ const createComment = async (req, res) => {
 
 // Delete a post
 const deletePost = async (req, res) => {
-  const params = req.params;
+  const { postId, userId } = req.params;
   try {
-    const check = await Post.find({ id: params });
-    if (check.userEmail == email) {
-      res.send({ status: 200, data: allPost });
+    const post = await Post.findOne({ id: postId });
+    if (post.userId == userId) {
+      await Post.deleteOne({id: postId})
+      res.send({ status: 201, message: 'Post deleted' });
+    } else {
+      res.send({ status: 401, message: "Unathorised access." });
     }
   } catch (error) {
     res.status(500).send(error.message);
   }
 };
 
-module.exports = { createPost, getAllPost, createComment };
+module.exports = { createPost, getAllPost, createComment, deletePost };
