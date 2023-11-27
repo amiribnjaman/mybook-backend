@@ -54,12 +54,20 @@ const getOnePost = async (req, res) => {
 
 // Update a post
 const updatePost = async (req, res) => {
-  const { post } = req.body;
-  const params = req.params;
+  const { postId, post, imgUrl, userId } = req.body;
   try {
-    const check = await Post.find({ id: params });
-    if (check.userEmail == email) {
-      res.send({ status: 200, data: allPost });
+    const getpost = await Post.findOne({ id: postId });
+    if (getpost.userId == userId) {
+      await Post.updateOne(
+        { id: postId },
+        {
+          $set: {
+            post: post,
+            imgUrl: imgUrl,
+          },
+        }
+      );
+      res.send({ status: 200, message: 'Post updated successfully.' });
     }
   } catch (error) {
     res.status(500).send(error.message);
@@ -115,6 +123,7 @@ module.exports = {
   createPost,
   getAllPost,
   createComment,
+  updatePost,
   deletePost,
   getOnePost,
 };
