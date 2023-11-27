@@ -6,6 +6,7 @@ const {
   getOnePost,
   updatePost,
     createComment,
+    updateComment,
   deleteComment
 } = require("../controller/post.controller");
 const router = express.Router();
@@ -21,6 +22,7 @@ router.delete("/deletePost/:userId/:postId", deletePost);
 
 // COMMENT ROUTER
 router.patch("/createComment", createComment);
+router.patch("/update-comment", updateComment);
 router.delete("/deleteComment/:userId/:commentId/:postid", deleteComment);
 
 module.exports = router;

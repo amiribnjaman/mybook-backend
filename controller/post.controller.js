@@ -128,6 +128,31 @@ const createComment = async (req, res) => {
 };
 
 
+
+// Update a comment 
+const updateComment = async (req, res) => {
+  const {userId, commentId, postId, comment} = req.body
+
+  try {
+    const post = await Post.find({ id: postId })
+    const getcomment = post[0]?.comments?.find(com => com.id == commentId);
+    if (getcomment.userId == userId) {
+      await Post.updateOne(
+        { id: postId, "comments.id": commentId },
+        {
+          $set: {
+            "comments.$.comment": comment,
+          },
+        }
+      );
+      res.send({ status: 200, message: "Comment updated." });
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+
 // Delete a comment 
 const deleteComment = async (req, res) => {
   const { userId, commentId, postid } = req.params;
@@ -135,7 +160,6 @@ const deleteComment = async (req, res) => {
     const post = await Post.find({ id: postid })
     const comment = post[0]?.comments?.find(com => com.userId == userId);
     if (comment.userId == userId) {
-      console.log("ok");
        const filteredComments = post[0]?.comments?.filter(
          (com) => com.id !== commentId
        );
@@ -161,5 +185,6 @@ module.exports = {
   deletePost,
   getOnePost,
   createComment,
+  updateComment,
   deleteComment,
 };
