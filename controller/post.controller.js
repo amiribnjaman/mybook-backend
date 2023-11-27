@@ -41,6 +41,17 @@ const getAllPost = async (req, res) => {
   }
 };
 
+// Get A Single post
+const getOnePost = async (req, res) => {
+  const { postId } = req.params
+  try {
+    const post = await Post.findOne({ id: postId }, { post: 1, imgUrl: 1});
+    res.send({ status: 200, data: post });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
 // Update a post
 const updatePost = async (req, res) => {
   const { post } = req.body;
@@ -49,6 +60,23 @@ const updatePost = async (req, res) => {
     const check = await Post.find({ id: params });
     if (check.userEmail == email) {
       res.send({ status: 200, data: allPost });
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+
+// Delete a post
+const deletePost = async (req, res) => {
+  const { postId, userId } = req.params;
+  try {
+    const post = await Post.findOne({ id: postId });
+    if (post.userId == userId) {
+      await Post.deleteOne({id: postId})
+      res.send({ status: 201, message: 'Post deleted' });
+    } else {
+      res.send({ status: 401, message: "Unathorised access." });
     }
   } catch (error) {
     res.status(500).send(error.message);
@@ -83,20 +111,10 @@ const createComment = async (req, res) => {
   }
 };
 
-// Delete a post
-const deletePost = async (req, res) => {
-  const { postId, userId } = req.params;
-  try {
-    const post = await Post.findOne({ id: postId });
-    if (post.userId == userId) {
-      await Post.deleteOne({id: postId})
-      res.send({ status: 201, message: 'Post deleted' });
-    } else {
-      res.send({ status: 401, message: "Unathorised access." });
-    }
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
+module.exports = {
+  createPost,
+  getAllPost,
+  createComment,
+  deletePost,
+  getOnePost,
 };
-
-module.exports = { createPost, getAllPost, createComment, deletePost };

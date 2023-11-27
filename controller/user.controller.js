@@ -56,6 +56,13 @@ const loginUser = async (req, res) => {
   }
 };
 
+
+
+{/*
+** Here first get user email and checking 
+** then if metched operate reset password api
+** For reset password
+*/}
 // Forgot password email check
 const forgotPassCheck = async (req, res) => {
 const { email } = req.body;
@@ -70,8 +77,6 @@ const { email } = req.body;
     res.status(500).send(error.message);
   }
 }
-
-
 // Reset Password 
 const resetPassword = async (req, res) => {
   const { email, password } = req.body;
@@ -99,7 +104,6 @@ const resetPassword = async (req, res) => {
     res.status(500).send(error.message);
   }
 };
-
 
 
 
