@@ -214,9 +214,19 @@ const postInteraction = async (req, res) => {
   try {
     const post = await Post.find({ id: postId, userId: userId });
     const likes = post[0].Likes.find((like) => like.userId == userId);
+    const type = post[0].Likes.find(like => like.likeType == likeType)
     // if (post[0].userId == userId) {
-      if (likes) {
+      if (likes && type) {
         await Post.updateOne(
+          { id: postId, userId: userId },
+          {
+            $set: {
+              Likes: [],
+            },
+          }
+        );
+      } else if (likes){
+      await Post.updateOne(
           { id: postId, userId: userId },
           {
             $set: {
