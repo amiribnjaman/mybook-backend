@@ -7,12 +7,12 @@ const createPost = async (req, res) => {
   const { post, imgUrl, userId } = req.body;
   try {
     const getUser = await User.findOne({ id: userId });
-    console.log(getUser, req.body)
+    console.log(getUser, req.body);
     // if (getUser) {
     const newPost = new Post({
       id: uuidv4(),
       post,
-      userName: getUser.firstName + ' ' + getUser.surName,
+      userName: getUser.firstName + " " + getUser.surName,
       userId,
       imgUrl,
     });
@@ -43,9 +43,9 @@ const getAllPost = async (req, res) => {
 
 // Get A Single post
 const getOnePost = async (req, res) => {
-  const { postId } = req.params
+  const { postId } = req.params;
   try {
-    const post = await Post.findOne({ id: postId }, { post: 1, imgUrl: 1});
+    const post = await Post.findOne({ id: postId }, { post: 1, imgUrl: 1 });
     res.send({ status: 200, data: post });
   } catch (error) {
     res.status(500).send(error.message);
@@ -67,13 +67,12 @@ const updatePost = async (req, res) => {
           },
         }
       );
-      res.send({ status: 200, message: 'Post updated successfully.' });
+      res.send({ status: 200, message: "Post updated successfully." });
     }
   } catch (error) {
     res.status(500).send(error.message);
   }
 };
-
 
 // Delete a post
 const deletePost = async (req, res) => {
@@ -81,8 +80,8 @@ const deletePost = async (req, res) => {
   try {
     const post = await Post.findOne({ id: postId });
     if (post.userId == userId) {
-      await Post.deleteOne({id: postId})
-      res.send({ status: 201, message: 'Post deleted' });
+      await Post.deleteOne({ id: postId });
+      res.send({ status: 201, message: "Post deleted" });
     } else {
       res.send({ status: 401, message: "Unathorised access." });
     }
@@ -91,7 +90,6 @@ const deletePost = async (req, res) => {
   }
 };
 
-
 {
   /*
    **
@@ -99,7 +97,7 @@ const deletePost = async (req, res) => {
    **
    */
 }
-// Create a new comment 
+// Create a new comment
 const createComment = async (req, res) => {
   const { postId, comment, userId } = req.body;
   try {
@@ -115,7 +113,7 @@ const createComment = async (req, res) => {
               postId,
               userId,
               comment,
-              replies: []
+              replies: [],
             },
           ],
         },
@@ -127,15 +125,13 @@ const createComment = async (req, res) => {
   }
 };
 
-
-
-// Update a comment 
+// Update a comment
 const updateComment = async (req, res) => {
-  const {userId, commentId, postId, comment} = req.body
+  const { userId, commentId, postId, comment } = req.body;
 
   try {
-    const post = await Post.find({ id: postId })
-    const getcomment = post[0]?.comments?.find(com => com.id == commentId);
+    const post = await Post.find({ id: postId });
+    const getcomment = post[0]?.comments?.find((com) => com.id == commentId);
     if (getcomment.userId == userId) {
       await Post.updateOne(
         { id: postId, "comments.id": commentId },
@@ -152,59 +148,114 @@ const updateComment = async (req, res) => {
   }
 };
 
-
-// Delete a comment 
+// Delete a comment
 const deleteComment = async (req, res) => {
   const { userId, commentId, postid } = req.params;
   try {
-    const post = await Post.find({ id: postid })
-    const comment = post[0]?.comments?.find(com => com.userId == userId);
+    const post = await Post.find({ id: postid });
+    const comment = post[0]?.comments?.find((com) => com.userId == userId);
     if (comment.userId == userId) {
-       const filteredComments = post[0]?.comments?.filter(
-         (com) => com.id !== commentId
-       );
-      await Post.updateOne(
-         { id: postid },
-         {
-           $set: {
-             comments: filteredComments,
-           },
-         }
+      const filteredComments = post[0]?.comments?.filter(
+        (com) => com.id !== commentId
       );
-       res.send({ status: 200, message: 'Comment deleted.' });
+      await Post.updateOne(
+        { id: postid },
+        {
+          $set: {
+            comments: filteredComments,
+          },
+        }
+      );
+      res.send({ status: 200, message: "Comment deleted." });
     }
   } catch (error) {
     res.status(500).send(error.message);
   }
 };
 
-// Create a new replay 
+// Create a new replay
 const createReply = async (req, res) => {
   const { postId, reply, userId, commentId } = req.body;
   try {
     const comment = await Post.find({ id: postId, "comments.id": commentId });
     const getCom = comment[0].comments.find((com) => com.id == commentId);
     const newComment = {
-                id: uuidv4(),
-                postId,
-                commentId,
-                userId,
-                reply,
-              }
-      await Post.updateOne(
-        { id: postId, "comments.id": commentId },
-        {
-          $set: {
-            "comments.$.replies": [...getCom.replies, newComment],
-          },
-        }
-      );
-    res.send({ status: 200, message: 'Reply created' });
+      id: uuidv4(),
+      postId,
+      commentId,
+      userId,
+      reply,
+    };
+    await Post.updateOne(
+      { id: postId, "comments.id": commentId },
+      {
+        $set: {
+          "comments.$.replies": [...getCom.replies, newComment],
+        },
+      }
+    );
+    res.send({ status: 200, message: "Reply created" });
   } catch (error) {
     res.status(500).send(error.message);
   }
 };
 
+{
+  /*
+   **
+   ** HERE START INTERACTION/LIKES API'S
+   **
+   */
+}
+
+// POST INTERACTION API
+const postInteraction = async (req, res) => {
+  const { userId, postId, likeType } = req.body;
+  try {
+    const post = await Post.find({ id: postId, userId: userId });
+    const likes = post[0].Likes.find((like) => like.userId == userId);
+    // if (post[0].userId == userId) {
+      if (likes) {
+        await Post.updateOne(
+          { id: postId, userId: userId },
+          {
+            $set: {
+              Likes: [
+                {
+                  id: uuidv4(),
+                  postId,
+                  userId,
+                  likeType,
+                },
+              ],
+            },
+          }
+        );
+      } else {
+        await Post.updateOne(
+          { id: postId },
+          {
+            $set: {
+              Likes: [
+                ...post[0].Likes,
+                {
+                  id: uuidv4(),
+                  postId,
+                  userId,
+                  likeType,
+                },
+              ],
+            },
+          }
+        );
+      }
+
+      res.send({ status: 200, message: "Liked implemented" });
+    // }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
 
 module.exports = {
   createPost,
@@ -216,4 +267,5 @@ module.exports = {
   updateComment,
   deleteComment,
   createReply,
+  postInteraction,
 };
