@@ -5,9 +5,10 @@ const {
   deletePost,
   getOnePost,
   updatePost,
-    createComment,
-    updateComment,
-  deleteComment
+  createComment,
+  updateComment,
+  deleteComment,
+  createReply,
 } = require("../controller/post.controller");
 const router = express.Router();
 
@@ -24,5 +25,8 @@ router.delete("/deletePost/:userId/:postId", deletePost);
 router.patch("/createComment", createComment);
 router.patch("/update-comment", updateComment);
 router.delete("/deleteComment/:userId/:commentId/:postid", deleteComment);
+
+// REPLY ROUTER
+router.patch("/create-reply", createReply);
 
 module.exports = router;

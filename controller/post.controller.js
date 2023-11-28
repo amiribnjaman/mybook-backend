@@ -178,6 +178,34 @@ const deleteComment = async (req, res) => {
   }
 };
 
+// Create a new replay 
+const createReply = async (req, res) => {
+  const { postId, reply, userId, commentId } = req.body;
+  try {
+    const comment = await Post.find({ id: postId, "comments.id": commentId });
+    const getCom = comment[0].comments.find((com) => com.id == commentId);
+    const newComment = {
+                id: uuidv4(),
+                postId,
+                commentId,
+                userId,
+                reply,
+              }
+      await Post.updateOne(
+        { id: postId, "comments.id": commentId },
+        {
+          $set: {
+            "comments.$.replies": [...getCom.replies, newComment],
+          },
+        }
+      );
+    res.send({ status: 200, message: 'Reply created' });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+
 module.exports = {
   createPost,
   getAllPost,
@@ -187,4 +215,5 @@ module.exports = {
   createComment,
   updateComment,
   deleteComment,
+  createReply,
 };
