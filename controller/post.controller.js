@@ -212,55 +212,60 @@ const createReply = async (req, res) => {
 const postInteraction = async (req, res) => {
   const { userId, postId, likeType } = req.body;
   try {
-    const post = await Post.find({ id: postId, userId: userId });
-    const likes = post[0].Likes.find((like) => like.userId == userId);
-    const type = post[0].Likes.find(like => like.likeType == likeType)
-    // if (post[0].userId == userId) {
-      if (likes && type) {
-        await Post.updateOne(
-          { id: postId, userId: userId },
-          {
-            $set: {
-              Likes: [],
-            },
-          }
-        );
-      } else if (likes){
-      await Post.updateOne(
-          { id: postId, userId: userId },
-          {
-            $set: {
-              Likes: [
-                {
-                  id: uuidv4(),
-                  postId,
-                  userId,
-                  likeType,
-                },
-              ],
-            },
-          }
-        );
-      } else {
-        await Post.updateOne(
-          { id: postId },
-          {
-            $set: {
-              Likes: [
-                ...post[0].Likes,
-                {
-                  id: uuidv4(),
-                  postId,
-                  userId,
-                  likeType,
-                },
-              ],
-            },
-          }
-        );
-      }
+    const post = await Post.find({ id: postId });
+    const user = post[0].Likes.find((like) => like.userId == userId);
+    const type = post[0].Likes.find(
+      (like) => (like.userId == userId && like.likeType) == likeType
+    );
+    const filtered = post[0].Likes.filter((like) => like.userId !== userId);
+    if (user && type) {
+      const unlike = post[0]?.Likes.filter((like) => like.userId !== userId);
 
-      res.send({ status: 200, message: "Liked implemented" });
+      await Post.updateOne(
+        { id: postId, "Likes.userId": userId },
+        {
+          $set: {
+            Likes: unlike,
+          },
+        }
+      );
+    } else if (user) {
+      const unlike = post[0].Likes.filter((like) => like.userId !== userId);
+      await Post.updateOne(
+        { id: postId, "Likes.userId": userId },
+        {
+          $set: {
+            Likes: {
+              id: uuidv4(),
+              postId,
+              userId,
+              likeType,
+            },
+          },
+        }
+      );
+    } else {
+      console.log("else");
+      await Post.updateOne(
+        { id: postId },
+        {
+          $set: {
+            Likes: [
+              ...post[0].Likes,
+              {
+                id: uuidv4(),
+                postId,
+                userId,
+                likeType,
+              },
+            ],
+          },
+        }
+      );
+    }
+    const newpost = await Post.find({ id: postId });
+
+    res.send({ status: 200, data: newpost, message: "Liked implemented" });
     // }
   } catch (error) {
     res.status(500).send(error.message);
