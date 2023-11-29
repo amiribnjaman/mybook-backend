@@ -217,10 +217,8 @@ const postInteraction = async (req, res) => {
     const type = post[0].Likes.find(
       (like) => (like.userId == userId && like.likeType) == likeType
     );
-    const filtered = post[0].Likes.filter((like) => like.userId !== userId);
     if (user && type) {
       const unlike = post[0]?.Likes.filter((like) => like.userId !== userId);
-
       await Post.updateOne(
         { id: postId, "Likes.userId": userId },
         {
@@ -234,18 +232,10 @@ const postInteraction = async (req, res) => {
       await Post.updateOne(
         { id: postId, "Likes.userId": userId },
         {
-          $set: {
-            Likes: {
-              id: uuidv4(),
-              postId,
-              userId,
-              likeType,
-            },
-          },
+          $set: { "Likes.$.likeType": likeType },
         }
       );
     } else {
-      console.log("else");
       await Post.updateOne(
         { id: postId },
         {
@@ -263,9 +253,7 @@ const postInteraction = async (req, res) => {
         }
       );
     }
-    const newpost = await Post.find({ id: postId });
-
-    res.send({ status: 200, data: newpost, message: "Liked implemented" });
+    res.send({ status: 200, message: "Liked implemented" });
     // }
   } catch (error) {
     res.status(500).send(error.message);
