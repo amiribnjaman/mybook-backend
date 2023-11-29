@@ -114,6 +114,7 @@ const createComment = async (req, res) => {
               userId,
               comment,
               replies: [],
+              Likes: [],
             },
           ],
         },
@@ -228,7 +229,6 @@ const postInteraction = async (req, res) => {
         }
       );
     } else if (user) {
-      const unlike = post[0].Likes.filter((like) => like.userId !== userId);
       await Post.updateOne(
         { id: postId, "Likes.userId": userId },
         {
@@ -260,6 +260,51 @@ const postInteraction = async (req, res) => {
   }
 };
 
+// COMMENT LIKES API
+const commentLikes = async (req, res) => {
+  const { userId, postId, commentId, likeType } = req.body;
+  try {
+    const post = await Post.find({ id: postId, "comments.id": commentId });
+    const com = post[0].comments.find((com) => com.id == commentId);
+    const user = com?.Likes.find((like) => like.userId == userId);
+
+    const otherCom = com.Likes.filter((like) => like.userId !== userId);
+    if (com && user) {
+      console.log("if");
+      await Post.updateOne(
+        { id: postId, "comments.Likes.userId": userId },
+        {
+          $set: {
+            "comments.$.Likes": otherCom,
+          },
+        }
+      );
+    } else {
+      console.log("hello", otherCom);
+      await Post.updateOne(
+        { id: postId, "comments.id": commentId },
+        {
+          $set: {
+            "comments.$.Likes": [
+              ...otherCom,
+              {
+                id: uuidv4(),
+                postId,
+                userId,
+                likeType,
+              },
+            ],
+          },
+        }
+      );
+    }
+    res.send({ status: 200, message: "Liked implemented" });
+    // }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
 module.exports = {
   createPost,
   getAllPost,
@@ -271,4 +316,5 @@ module.exports = {
   deleteComment,
   createReply,
   postInteraction,
+  commentLikes,
 };

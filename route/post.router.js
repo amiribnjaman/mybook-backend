@@ -9,7 +9,8 @@ const {
   updateComment,
   deleteComment,
   createReply,
-  postInteraction
+  postInteraction,
+  commentLikes
 } = require("../controller/post.controller");
 const router = express.Router();
 
@@ -30,5 +31,8 @@ router.delete("/deleteComment/:userId/:commentId/:postid", deleteComment);
 // REPLY ROUTER
 router.patch("/create-reply", createReply);
 
+// REACT
 router.patch("/post-likes", postInteraction)
+router.patch("/comment-likes", commentLikes)
+
 module.exports = router;
