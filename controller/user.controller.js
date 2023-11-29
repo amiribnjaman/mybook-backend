@@ -35,16 +35,15 @@ const signupUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    console.log("enter");
     const getuser = await User.findOne({ email: email });
-    // const hashPass = bcrypt.hashSync(password, saltRounds);
     const comparePass = bcrypt.compareSync(password, getuser.password);
     if (comparePass) {
       // JWT Sign
       const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN);
-      res.cookie("Token", token, { httpOnly: false });
+      // res.cookie("Token", token, { httpOnly: false });
       res.send({
         status: 200,
+        token,
         userId: getuser.id,
         message: "Logedin successfully!",
       });
