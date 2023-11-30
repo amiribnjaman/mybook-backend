@@ -1,4 +1,5 @@
 const User = require("../model/user.model");
+const Post = require("../model/post.model");
 const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
@@ -20,6 +21,7 @@ const signupUser = async (req, res) => {
         surName,
         email,
         password: hashPass,
+        notification: [],
       });
       await newUser.save();
       res.send({ status: 201, user: newUser });
@@ -48,35 +50,40 @@ const loginUser = async (req, res) => {
         message: "Logedin successfully!",
       });
     } else {
-      res.status(401).json({status: '401', message: "Email or password is Invalid" });
+      res
+        .status(401)
+        .json({ status: "401", message: "Email or password is Invalid" });
     }
   } catch (error) {
     res.status(500).send(error.message);
   }
 };
 
-
-
-{/*
-** Here first get user email and checking 
-** then if metched operate reset password api
-** For reset password
-*/}
+{
+  /*
+   ** Here first get user email and checking
+   ** then if metched operate reset password api
+   ** For reset password
+   */
+}
 // Forgot password email check
 const forgotPassCheck = async (req, res) => {
-const { email } = req.body;
+  const { email } = req.body;
   try {
     const getuser = await User.findOne({ email: email });
     if (getuser) {
-      res.json({status: '200', message: "Email matched. Now set new password!" });
+      res.json({
+        status: "200",
+        message: "Email matched. Now set new password!",
+      });
     } else {
-      res.status(401).json({status: '401', message: "Email is Invalid" });
+      res.status(401).json({ status: "401", message: "Email is Invalid" });
     }
   } catch (error) {
     res.status(500).send(error.message);
   }
-}
-// Reset Password 
+};
+// Reset Password
 const resetPassword = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -104,6 +111,110 @@ const resetPassword = async (req, res) => {
   }
 };
 
+{
+  /*
+   ** CREATE USER NOTIFICATION
+   */
+}
+const createNotification = async (req, res) => {
+  const { userId, type, postId } = req.body;
+  try {
+    const post = await Post.findOne({ id: postId });
+    const postUser = await User.findOne({ id: post.userId });
+    const likeUser = await User.findOne({ id: userId });
+    const findUser = postUser?.notification?.find(
+      (like) => like?.userId == likeUser?.id
+    );
 
+    if (!findUser?.like && findUser?.postId != postId && type == "like") {
+      await User.updateOne(
+        { id: post.userId },
+        {
+          $set: {
+            notification: [
+              ...postUser?.notification,
+              {
+                id: uuidv4(),
+                postId: postId,
+                userId: likeUser.id,
+                like: true,
+                read: false,
+              },
+            ],
+          },
+        }
+      );
+      res.json({
+        status: "200",
+        message: "Notification updated",
+      });
+    } else if (
+      !findUser.comment &&
+      findUser?.postId != postId &&
+      type == "comment"
+    ) {
+      await User.updateOne(
+        { id: post.userId },
+        {
+          $set: {
+            notification: [
+              ...postUser?.notification,
+              {
+                id: uuidv4(),
+                postId: postId,
+                userId: likeUser.id,
+                comment: true,
+                read: false,
+              },
+            ],
+          },
+        }
+      );
 
-module.exports = { signupUser, loginUser, forgotPassCheck, resetPassword };
+      res.json({
+        status: "200",
+        message: "Notification updated",
+      });
+    } else {
+      res.json({ status: "401", message: "Something went wrong" });
+    }
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+{
+  /*
+   ** GET NOTIFICATION FOR A SPECIFIC USER
+   */
+}
+const getNotification = async (req, res) => {
+  const { userId } = req.params;
+  console.log(userId);
+  try {
+    if (userId) {
+      const notification = await User.find(
+        { id: userId },
+        { notification: 1, _id: -1 }
+      );
+      res.json({
+        status: "200",
+        data: notification,
+        message: "Notification send",
+      });
+    } else {
+      res.json({ status: "401", message: "Email or password is Invalid" });
+    }
+  } catch (error) {
+    res.status(401).json({ status: "401", message: error });
+  }
+};
+
+module.exports = {
+  signupUser,
+  loginUser,
+  forgotPassCheck,
+  resetPassword,
+  createNotification,
+  getNotification,
+};

@@ -31,7 +31,7 @@ router.delete("/deleteComment/:userId/:commentId/:postid", deleteComment);
 // REPLY ROUTER
 router.patch("/create-reply", createReply);
 
-// REACT
+// REACT ROUTER
 router.patch("/post-likes", postInteraction)
 router.patch("/comment-likes", commentLikes)
 

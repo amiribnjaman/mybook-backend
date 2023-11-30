@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  notification: {
+    type: Array,
+    required: false,
+  },
   createOn: {
     type: Date,
     default: Date.now,
