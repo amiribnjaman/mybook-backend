@@ -24,12 +24,12 @@ const signupUser = async (req, res) => {
         notification: [],
       });
       await newUser.save();
-      res.send({ status: 201, user: newUser });
+      res.send({ status: '201', user: newUser });
     } else {
-      res.send({ status: 400, message: "User already registered" });
+      res.send({ status: '400', message: "User already registered" });
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    res.send({status: 500, error});
   }
 };
 
@@ -44,18 +44,17 @@ const loginUser = async (req, res) => {
       const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN);
       // res.cookie("Token", token, { httpOnly: false });
       res.send({
-        status: 200,
+        status: '200',
         token,
         userId: getuser.id,
         message: "Logedin successfully!",
       });
     } else {
       res
-        .status(401)
-        .json({ status: "401", message: "Email or password is Invalid" });
+        .send({ status: "401", message: "Email or password is Invalid" });
     }
   } catch (error) {
-    res.status(500).send(error.message);
+    res.send({status: '500', error});
   }
 };
 

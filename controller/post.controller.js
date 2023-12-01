@@ -5,27 +5,26 @@ const { v4: uuidv4 } = require("uuid");
 // Create a new post
 const createPost = async (req, res) => {
   const { post, imgUrl, userId } = req.body;
+  const { email } = req.decoded;
   try {
-    const getUser = await User.findOne({ id: userId });
-    console.log(getUser, req.body);
-    // if (getUser) {
-    const newPost = new Post({
-      id: uuidv4(),
-      post,
-      userName: getUser.firstName + " " + getUser.surName,
-      userId,
-      imgUrl,
-    });
-    await newPost.save();
-    res.send({
-      status: 201,
-      message: "Post created successfully.",
-      data: newPost,
-    });
-    // }
-    // else {
-    //   res.send({ status: 400, message: "Something went wrong" });
-    // }
+    const getUser = await User.findOne({ id: userId, email });
+    if (getUser) {
+      const newPost = new Post({
+        id: uuidv4(),
+        post,
+        userName: getUser.firstName + " " + getUser.surName,
+        userId,
+        imgUrl,
+      });
+      await newPost.save();
+      res.send({
+        status: 201,
+        message: "Post created successfully.",
+        data: newPost,
+      });
+    } else {
+      res.send({ status: "401", message: "Unathorized access" });
+    }
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -44,9 +43,15 @@ const getAllPost = async (req, res) => {
 // Get A Single post
 const getOnePost = async (req, res) => {
   const { postId } = req.params;
+  const { email } = req.decoded;
   try {
-    const post = await Post.findOne({ id: postId }, { post: 1, imgUrl: 1 });
-    res.send({ status: 200, data: post });
+    const user = await User.findOne({ email });
+    if (user) {
+      const post = await Post.findOne({ id: postId }, { post: 1, imgUrl: 1 });
+      res.send({ status: 200, data: post });
+    } else {
+      res.send({ status: 401, message: "Unauthorized access" });
+    }
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -55,9 +60,12 @@ const getOnePost = async (req, res) => {
 // Update a post
 const updatePost = async (req, res) => {
   const { postId, post, imgUrl, userId } = req.body;
+  const { email } = req.decoded;
   try {
+    const user = await User.findOne({ id: userId, email });
     const getpost = await Post.findOne({ id: postId });
-    if (getpost.userId == userId) {
+    if (getpost.userId == userId && user) {
+      console.log("update triggered");
       await Post.updateOne(
         { id: postId },
         {
@@ -67,7 +75,7 @@ const updatePost = async (req, res) => {
           },
         }
       );
-      res.send({ status: 200, message: "Post updated successfully." });
+      res.send({ status: "200", message: "Post updated successfully." });
     }
   } catch (error) {
     res.status(500).send(error.message);
@@ -77,13 +85,16 @@ const updatePost = async (req, res) => {
 // Delete a post
 const deletePost = async (req, res) => {
   const { postId, userId } = req.params;
+  const { email } = req.decoded;
+
   try {
+    const user = await User.findOne({ email });
     const post = await Post.findOne({ id: postId });
-    if (post.userId == userId) {
+    if (user && post.userId == userId) {
       await Post.deleteOne({ id: postId });
-      res.send({ status: 201, message: "Post deleted" });
+      res.send({ status: 200, message: "Post deleted" });
     } else {
-      res.send({ status: 401, message: "Unathorised access." });
+      res.send({ status: 401, message: "Unauthorised access." });
     }
   } catch (error) {
     res.status(500).send(error.message);
@@ -100,27 +111,34 @@ const deletePost = async (req, res) => {
 // Create a new comment
 const createComment = async (req, res) => {
   const { postId, comment, userId } = req.body;
+  const { email } = req.decoded;
+
   try {
-    const post = await Post.find({ id: postId });
-    const comments = await Post.updateOne(
-      { id: postId },
-      {
-        $set: {
-          comments: [
-            ...post[0].comments,
-            {
-              id: uuidv4(),
-              postId,
-              userId,
-              comment,
-              replies: [],
-              Likes: [],
-            },
-          ],
-        },
-      }
-    );
-    res.send({ status: 200, data: comments });
+    const user = await User.findOne({ email });
+    if (user) {
+      const post = await Post.find({ id: postId });
+      const comments = await Post.updateOne(
+        { id: postId },
+        {
+          $set: {
+            comments: [
+              ...post[0].comments,
+              {
+                id: uuidv4(),
+                postId,
+                userId,
+                comment,
+                replies: [],
+                Likes: [],
+              },
+            ],
+          },
+        }
+      );
+      res.send({ status: 200, data: comments });
+    } else {
+      res.send({ status: 401, message: "Unauthorised access." });
+    }
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -129,11 +147,13 @@ const createComment = async (req, res) => {
 // Update a comment
 const updateComment = async (req, res) => {
   const { userId, commentId, postId, comment } = req.body;
+  const { email } = req.decoded;
 
   try {
+    const user = await User.findOne({ email });
     const post = await Post.find({ id: postId });
     const getcomment = post[0]?.comments?.find((com) => com.id == commentId);
-    if (getcomment.userId == userId) {
+    if (user && getcomment.userId == userId) {
       await Post.updateOne(
         { id: postId, "comments.id": commentId },
         {
@@ -152,10 +172,13 @@ const updateComment = async (req, res) => {
 // Delete a comment
 const deleteComment = async (req, res) => {
   const { userId, commentId, postid } = req.params;
+  const { email } = req.decoded;
+
   try {
+    const user = await User.findOne({ email });
     const post = await Post.find({ id: postid });
     const comment = post[0]?.comments?.find((com) => com.userId == userId);
-    if (comment.userId == userId) {
+    if (user && comment.userId == userId) {
       const filteredComments = post[0]?.comments?.filter(
         (com) => com.id !== commentId
       );
@@ -304,6 +327,8 @@ const commentLikes = async (req, res) => {
     res.status(500).send(error.message);
   }
 };
+
+
 
 module.exports = {
   createPost,
