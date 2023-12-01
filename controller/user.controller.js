@@ -29,7 +29,7 @@ const signupUser = async (req, res) => {
       res.send({ status: '400', message: "User already registered" });
     }
   } catch (error) {
-    res.send({status: 500, error});
+    res.send({status: '500', error});
   }
 };
 

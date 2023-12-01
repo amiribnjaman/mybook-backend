@@ -65,7 +65,6 @@ const updatePost = async (req, res) => {
     const user = await User.findOne({ id: userId, email });
     const getpost = await Post.findOne({ id: postId });
     if (getpost.userId == userId && user) {
-      console.log("update triggered");
       await Post.updateOne(
         { id: postId },
         {
