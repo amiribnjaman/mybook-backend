@@ -250,6 +250,7 @@ const postInteraction = async (req, res) => {
           },
         }
       );
+      res.send({ status: '200', message: "Liked implemented" });
     } else if (user) {
       await Post.updateOne(
         { id: postId, "Likes.userId": userId },
@@ -257,6 +258,7 @@ const postInteraction = async (req, res) => {
           $set: { "Likes.$.likeType": likeType },
         }
       );
+      res.send({ status: '200', message: "Liked implemented" });
     } else {
       await Post.updateOne(
         { id: postId },
@@ -274,8 +276,9 @@ const postInteraction = async (req, res) => {
           },
         }
       );
+      res.send({ status: '201', message: "Liked implemented" });
     }
-    res.send({ status: 200, message: "Liked implemented" });
+    
     // }
   } catch (error) {
     res.status(500).send(error.message);

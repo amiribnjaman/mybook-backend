@@ -24,12 +24,12 @@ const signupUser = async (req, res) => {
         notification: [],
       });
       await newUser.save();
-      res.send({ status: '201', user: newUser });
+      res.send({ status: "201", user: newUser });
     } else {
-      res.send({ status: '400', message: "User already registered" });
+      res.send({ status: "400", message: "User already registered" });
     }
   } catch (error) {
-    res.send({status: '500', error});
+    res.send({ status: "500", error });
   }
 };
 
@@ -38,23 +38,26 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
     const getuser = await User.findOne({ email: email });
-    const comparePass = bcrypt.compareSync(password, getuser.password);
-    if (comparePass) {
-      // JWT Sign
-      const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN);
-      // res.cookie("Token", token, { httpOnly: false });
-      res.send({
-        status: '200',
-        token,
-        userId: getuser.id,
-        message: "Logedin successfully!",
-      });
+    if (getuser) {
+      const comparePass = bcrypt.compareSync(password, getuser.password);
+      if (comparePass) {
+        // JWT Sign
+        const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN);
+        // res.cookie("Token", token, { httpOnly: false });
+        res.send({
+          status: "200",
+          token,
+          userId: getuser.id,
+          message: "Logedin successfully!",
+        });
+      } else {
+        res.send({ status: "401", message: "Email or password is Invalid" });
+      }
     } else {
-      res
-        .send({ status: "401", message: "Email or password is Invalid" });
+      res.send({ status: "404", message: "User not found!" });
     }
   } catch (error) {
-    res.send({status: '500', error});
+    res.send({ status: "500", error });
   }
 };
 
@@ -124,29 +127,51 @@ const createNotification = async (req, res) => {
     const findUser = postUser?.notification?.find(
       (like) => like?.userId == likeUser?.id
     );
+    const notification = postUser?.notification?.find((notification) => notification?.postId == postId);
 
-    if (!findUser?.like && findUser?.postId != postId && type == "like") {
-      await User.updateOne(
-        { id: post.userId },
-        {
-          $set: {
-            notification: [
-              ...postUser?.notification,
-              {
-                id: uuidv4(),
-                postId: postId,
-                userId: likeUser.id,
-                like: true,
-                read: false,
-              },
-            ],
-          },
-        }
-      );
-      res.json({
-        status: "200",
-        message: "Notification updated",
-      });
+    
+    if (type == "like") {
+      if (!notification && !findUser?.like && findUser?.postId != postId) {
+        await User.updateOne(
+          { id: post.userId },
+          {
+            $set: {
+              notification: [
+                ...postUser?.notification,
+                {
+                  id: uuidv4(),
+                  postId: postId,
+                  userId: likeUser.id,
+                  like: true,
+                  read: false,
+                  count: 1,
+                },
+              ],
+            },
+          }
+        );
+        res.send({
+          status: "200",
+          message: "Notification updated",
+        });
+      } else if (findUser?.postId == postId) {
+        await User.updateOne(
+          { id: post.userId, "notification.postId": postId },
+          {
+            $set: {
+              "notification.$.count": notification.count + 1,
+            },
+          }
+        );
+        const newU = await User.find({
+          id: post.userId,
+          "notification.postId": postId,
+        });
+        res.send({
+          status: "200",
+          message: "Notification updated",
+        });
+      }
     } else if (
       !findUser.comment &&
       findUser?.postId != postId &&
@@ -170,12 +195,12 @@ const createNotification = async (req, res) => {
         }
       );
 
-      res.json({
+      res.send({
         status: "200",
         message: "Notification updated",
       });
     } else {
-      res.json({ status: "401", message: "Something went wrong" });
+      res.send({ status: "401", message: "Something went wrong" });
     }
   } catch (error) {
     res.status(500).send(error.message);
