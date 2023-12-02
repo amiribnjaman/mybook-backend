@@ -119,6 +119,7 @@ const resetPassword = async (req, res) => {
    */
 }
 const createNotification = async (req, res) => {
+  console.log('ok')
   const { userId, type, postId } = req.body;
   try {
     const post = await Post.findOne({ id: postId });
@@ -127,12 +128,15 @@ const createNotification = async (req, res) => {
     const findUser = postUser?.notification?.find(
       (like) => like?.userId == user?.id
     );
-    const notification = postUser?.notification?.find(
-      (notification) => notification?.postId == postId
+    const likeNotification = postUser?.notification?.find(
+      (notification) =>
+        notification?.postId == postId &&
+        notification.like == true
     );
 
-    if (type == "like") {
-      if (!notification || !findUser?.like) {
+    if (type === "like") {
+      // LIKE NOTIFICATION
+      if (!likeNotification) {
         await User.updateOne(
           { id: post.userId },
           {
@@ -155,27 +159,31 @@ const createNotification = async (req, res) => {
           status: "200",
           message: "Notification updated",
         });
-      } else if (notification) {
+      } else {
         await User.updateOne(
-          { id: post.userId, "notification.postId": postId, like: true },
+          {
+            id: post.userId,
+            "notification.postId": postId,
+            "notification.like": true,
+          },
           {
             $set: {
-              "notification.$.count": notification.count + 1,
+              "notification.$.count": likeNotification.count + 1,
             },
           }
         );
-        const newU = await User.find({
-          id: post.userId,
-          "notification.postId": postId,
-        });
         res.send({
           status: "200",
           message: "Notification updated",
         });
       }
-    } else if (type == "comment") {
-      console.log("hello 000000");
-      if (!notification || !findUser?.comment) {
+    } else if (type === "comment") {
+      const commentNotification = postUser?.notification?.find(
+        (notification) =>
+          notification?.postId == postId && notification.comment == true
+      )
+
+      if (!commentNotification) {
         await User.updateOne(
           { id: post.userId },
           {
@@ -199,19 +207,20 @@ const createNotification = async (req, res) => {
           status: "200",
           message: "Notification updated",
         });
-      } else if (notification) {
+      } else {
+        // return
         await User.updateOne(
-          { id: post.userId, "notification.postId": postId, comment: true },
+          {
+            id: post.userId,
+            "notification.postId": postId,
+            "notification.comment": true,
+          },
           {
             $set: {
-              "notification.$.count": notification.count + 1,
+              "notification.$.count": commentNotification.count + 1,
             },
           }
         );
-        const newU = await User.find({
-          id: post.userId,
-          "notification.postId": postId,
-        });
         res.send({
           status: "200",
           message: "Notification updated",
