@@ -10,7 +10,8 @@ const {
   deleteComment,
   createReply,
   postInteraction,
-  commentLikes
+  commentLikes,
+  
 } = require("../controller/post.controller");
 const jwtAuthentication = require("../middleware/authentication");
 const router = express.Router();

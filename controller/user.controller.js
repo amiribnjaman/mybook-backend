@@ -119,7 +119,7 @@ const resetPassword = async (req, res) => {
    */
 }
 const createNotification = async (req, res) => {
-  console.log('ok')
+  console.log("ok");
   const { userId, type, postId } = req.body;
   try {
     const post = await Post.findOne({ id: postId });
@@ -130,8 +130,7 @@ const createNotification = async (req, res) => {
     );
     const likeNotification = postUser?.notification?.find(
       (notification) =>
-        notification?.postId == postId &&
-        notification.like == true
+        notification?.postId == postId && notification.like == true
     );
 
     if (type === "like") {
@@ -181,7 +180,7 @@ const createNotification = async (req, res) => {
       const commentNotification = postUser?.notification?.find(
         (notification) =>
           notification?.postId == postId && notification.comment == true
-      )
+      );
 
       if (!commentNotification) {
         await User.updateOne(
@@ -208,7 +207,6 @@ const createNotification = async (req, res) => {
           message: "Notification updated",
         });
       } else {
-        // return
         await User.updateOne(
           {
             id: post.userId,
@@ -241,7 +239,6 @@ const createNotification = async (req, res) => {
 }
 const getNotification = async (req, res) => {
   const { userId } = req.params;
-  console.log(userId);
   try {
     if (userId) {
       const notification = await User.find(
@@ -261,6 +258,37 @@ const getNotification = async (req, res) => {
   }
 };
 
+{
+  /*
+   ** READ NOTIFICATION FOR A SPECIFIC USER
+   */
+}
+const readNotification = async (req, res) => {
+  const { userId } = req.body;
+  const user = await User.findOne({ id: userId });
+  const unRead = user?.notification?.filter(
+    (notification) => notification.read == false
+  );
+  try {
+    if (userId && unRead?.length > 0) {
+      await User.updateOne(
+        { id: userId, "notification.read": false },
+        {
+          $set: {
+            "notification.$.read": true,
+          },
+        }
+      );
+      const data = await User.findOne({ id: userId });
+      res.send({ status: "200", data, message: "Notification updated." });
+    } else {
+      res.json({ status: "404", message: "All notificatin already read." });
+    }
+  } catch (error) {
+    res.status(401).json({ status: "401", message: error });
+  }
+};
+
 module.exports = {
   signupUser,
   loginUser,
@@ -268,4 +296,5 @@ module.exports = {
   resetPassword,
   createNotification,
   getNotification,
+  readNotification,
 };
