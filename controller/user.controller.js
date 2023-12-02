@@ -123,15 +123,16 @@ const createNotification = async (req, res) => {
   try {
     const post = await Post.findOne({ id: postId });
     const postUser = await User.findOne({ id: post.userId });
-    const likeUser = await User.findOne({ id: userId });
+    const user = await User.findOne({ id: userId });
     const findUser = postUser?.notification?.find(
-      (like) => like?.userId == likeUser?.id
+      (like) => like?.userId == user?.id
     );
-    const notification = postUser?.notification?.find((notification) => notification?.postId == postId);
+    const notification = postUser?.notification?.find(
+      (notification) => notification?.postId == postId
+    );
 
-    
     if (type == "like") {
-      if (!notification && !findUser?.like && findUser?.postId != postId) {
+      if (!notification || !findUser?.like) {
         await User.updateOne(
           { id: post.userId },
           {
@@ -141,7 +142,7 @@ const createNotification = async (req, res) => {
                 {
                   id: uuidv4(),
                   postId: postId,
-                  userId: likeUser.id,
+                  userId: user.id,
                   like: true,
                   read: false,
                   count: 1,
@@ -156,7 +157,7 @@ const createNotification = async (req, res) => {
         });
       } else if (notification) {
         await User.updateOne(
-          { id: post.userId, "notification.postId": postId },
+          { id: post.userId, "notification.postId": postId, like: true },
           {
             $set: {
               "notification.$.count": notification.count + 1,
@@ -172,33 +173,50 @@ const createNotification = async (req, res) => {
           message: "Notification updated",
         });
       }
-    } else if (
-      !findUser.comment &&
-      findUser?.postId != postId &&
-      type == "comment"
-    ) {
-      await User.updateOne(
-        { id: post.userId },
-        {
-          $set: {
-            notification: [
-              ...postUser?.notification,
-              {
-                id: uuidv4(),
-                postId: postId,
-                userId: likeUser.id,
-                comment: true,
-                read: false,
-              },
-            ],
-          },
-        }
-      );
+    } else if (type == "comment") {
+      console.log("hello 000000");
+      if (!notification || !findUser?.comment) {
+        await User.updateOne(
+          { id: post.userId },
+          {
+            $set: {
+              notification: [
+                ...postUser?.notification,
+                {
+                  id: uuidv4(),
+                  postId: postId,
+                  userId: user.id,
+                  comment: true,
+                  read: false,
+                  count: 1,
+                },
+              ],
+            },
+          }
+        );
 
-      res.send({
-        status: "200",
-        message: "Notification updated",
-      });
+        res.send({
+          status: "200",
+          message: "Notification updated",
+        });
+      } else if (notification) {
+        await User.updateOne(
+          { id: post.userId, "notification.postId": postId, comment: true },
+          {
+            $set: {
+              "notification.$.count": notification.count + 1,
+            },
+          }
+        );
+        const newU = await User.find({
+          id: post.userId,
+          "notification.postId": postId,
+        });
+        res.send({
+          status: "200",
+          message: "Notification updated",
+        });
+      }
     } else {
       res.send({ status: "401", message: "Something went wrong" });
     }
