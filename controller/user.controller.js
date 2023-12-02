@@ -154,7 +154,7 @@ const createNotification = async (req, res) => {
           status: "200",
           message: "Notification updated",
         });
-      } else if (findUser?.postId == postId) {
+      } else if (notification) {
         await User.updateOne(
           { id: post.userId, "notification.postId": postId },
           {
