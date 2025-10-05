@@ -5,11 +5,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  firstName: {
-    type: String,
-    required: true,
-  },
-  surName: {
+  fullName: {
     type: String,
     required: true,
   },
@@ -22,8 +18,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  notification: {
-    type: Array,
+  imgUrl: {
+    type: String,
     required: false,
   },
   createOn: {

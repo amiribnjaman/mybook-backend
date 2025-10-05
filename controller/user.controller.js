@@ -9,7 +9,9 @@ const mongoose = require("mongoose");
 
 // Create OR Signup a user
 const signupUser = async (req, res) => {
-  const { firstName, surName, email, password } = req.body;
+  const { fullName, email, password, imgUrl } = req.body;
+  console.log(fullName, email, password, imgUrl);
+  // return
   try {
     const getuser = await User.findOne({ email: email });
     if (!getuser) {
@@ -17,11 +19,10 @@ const signupUser = async (req, res) => {
       const newUser = new User({
         _id: new mongoose.Types.ObjectId(),
         id: uuidv4(),
-        firstName,
-        surName,
+        fullName,
         email,
         password: hashPass,
-        notification: [],
+        imgUrl,
       });
       await newUser.save();
       res.send({ status: "201", user: newUser });
@@ -36,6 +37,7 @@ const signupUser = async (req, res) => {
 // Login user
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
+  console.log(email,password);
   try {
     const getuser = await User.findOne({ email: email });
     if (getuser) {
