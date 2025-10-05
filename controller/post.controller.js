@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require("uuid");
 
 // Create a new post
 const createPost = async (req, res) => {
-  const { userId, postTitle, postContent, postCategory,postImgUrl } = req.body;
+  const { userId, postTitle, postContent, postCategory, postImgUrl } = req.body;
   console.log(userId, postTitle, postContent, postCategory, postImgUrl);
   // return
   const { email } = req.decoded;
@@ -15,6 +15,7 @@ const createPost = async (req, res) => {
         id: uuidv4(),
         userId,
         userName: getUser.fullName,
+        userImg: getUser.imgUrl,
         postTitle,
         postContent,
         postCategory,
@@ -37,7 +38,10 @@ const createPost = async (req, res) => {
 // Get all posts
 const getAllPost = async (req, res) => {
   try {
-    const allPost = await Post.find({}).sort({ createOn: -1 });
+    const allPost = await Post.find({})
+      .populate("author", "fullName imgUrl")
+      .sort({ createOn: -1 })
+      .exec();
     res.send({ status: 200, data: allPost });
   } catch (error) {
     res.status(500).send(error.message);
@@ -254,7 +258,7 @@ const postInteraction = async (req, res) => {
           },
         }
       );
-      res.send({ status: '200', message: "Liked implemented" });
+      res.send({ status: "200", message: "Liked implemented" });
     } else if (user) {
       await Post.updateOne(
         { id: postId, "Likes.userId": userId },
@@ -262,7 +266,7 @@ const postInteraction = async (req, res) => {
           $set: { "Likes.$.likeType": likeType },
         }
       );
-      res.send({ status: '200', message: "Liked implemented" });
+      res.send({ status: "200", message: "Liked implemented" });
     } else {
       await Post.updateOne(
         { id: postId },
@@ -280,9 +284,9 @@ const postInteraction = async (req, res) => {
           },
         }
       );
-      res.send({ status: '201', message: "Liked implemented" });
+      res.send({ status: "201", message: "Liked implemented" });
     }
-    
+
     // }
   } catch (error) {
     res.status(500).send(error.message);
@@ -333,8 +337,6 @@ const commentLikes = async (req, res) => {
     res.status(500).send(error.message);
   }
 };
-
-
 
 module.exports = {
   createPost,

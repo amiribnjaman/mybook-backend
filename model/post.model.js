@@ -6,14 +6,20 @@ const postSchema = new Schema({
     type: String,
     required: true,
   },
-  userName: {
-    type: String,
-    required: true,
-  },
+  
   userId: {
     type: String,
     required: true,
   },
+  userName: {
+    type: String,
+    required: true,
+  },
+  userImg: {
+    type: String,
+    required: true,
+  },
+
   postTitle: {
     type: String,
     required: false,
@@ -30,11 +36,11 @@ const postSchema = new Schema({
     type: String,
     required: false,
   },
+  author: { type: Schema.Types.ObjectId, ref: "User" },
   createOn: {
     type: Date,
     default: Date.now,
   },
-  posts: [{ type: Schema.Types.ObjectId, ref: "User" }],
 });
 
 module.exports = mongoose.model("Post", postSchema);
