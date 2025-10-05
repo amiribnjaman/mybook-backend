@@ -4,17 +4,21 @@ const { v4: uuidv4 } = require("uuid");
 
 // Create a new post
 const createPost = async (req, res) => {
-  const { post, imgUrl, userId } = req.body;
+  const { userId, postTitle, postContent, postCategory,postImgUrl } = req.body;
+  console.log(userId, postTitle, postContent, postCategory, postImgUrl);
+  // return
   const { email } = req.decoded;
   try {
     const getUser = await User.findOne({ id: userId, email });
     if (getUser) {
       const newPost = new Post({
         id: uuidv4(),
-        post,
-        userName: getUser.firstName + " " + getUser.surName,
         userId,
-        imgUrl,
+        userName: getUser.fullName,
+        postTitle,
+        postContent,
+        postCategory,
+        postImgUrl,
       });
       await newPost.save();
       res.send({

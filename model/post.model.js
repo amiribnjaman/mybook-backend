@@ -14,20 +14,20 @@ const postSchema = new Schema({
     type: String,
     required: true,
   },
-  post: {
+  postTitle: {
     type: String,
     required: false,
   },
-  imgUrl: {
+  postContent: {
     type: String,
     required: false,
   },
-  comments: {
-    type: Array,
+  postCategory: {
+    type: String,
     required: false,
   },
-  Likes: {
-    type: Array,
+  postImgUrl: {
+    type: String,
     required: false,
   },
   createOn: {
