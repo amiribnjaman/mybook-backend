@@ -36,7 +36,7 @@ const postSchema = new Schema({
     type: String,
     required: false,
   },
-  LargestContentfulPaintikes: [{ type: String, required: false }],
+  likes: { type: [String], default: [] },
   createOn: {
     type: Date,
     default: Date.now,

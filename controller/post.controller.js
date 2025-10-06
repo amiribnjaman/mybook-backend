@@ -20,7 +20,7 @@ const createPost = async (req, res) => {
         postContent,
         postCategory,
         postImgUrl,
-        postLikes: [],
+        likes: [],
       });
       await newPost.save();
       res.send({
@@ -242,26 +242,31 @@ const createReply = async (req, res) => {
 
 // POST INTERACTION API
 const postInteraction = async (req, res) => {
-  const { userId, postId } = req.body;
-  console.log(userId,postId)
+  const { userId, postId } = req.body; 
+
   try {
-    const post = await Post.find({ id: postId });
-    const alreadyLiked = post?.likes.find((like) => like.userId == userId);
+    const post = await Post.findOne({ id: postId }); field
+     console.log(post);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const alreadyLiked = post?.likes.includes(userId);
+
     if (alreadyLiked) {
-      post?.Likes = post?.likes.filter((like) => like.userId !== userId);
+      post.likes = post?.likes.filter((id) => id !== userId);
     } else {
-      post?.likes.push({ userId: userId });
+      post?.likes.push(userId);
     }
 
-    await Post.save();
-    res.send({
-      status: 200,
-      message: alreadyLiked ? "already liked" : "Like implemented",
+    await post.save();
+
+    res.status(200).json({
+      message: alreadyLiked ? "Like removed" : "Like added",
       liked: !alreadyLiked,
-      likes: post?.ikes.length,
+      totalLikes: post.likes.length,
     });
   } catch (error) {
-    res.status(500).send(error.message);
+    console.error("Error in like route:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
