@@ -6,7 +6,7 @@ const postSchema = new Schema({
     type: String,
     required: true,
   },
-  
+
   userId: {
     type: String,
     required: true,
@@ -36,7 +36,6 @@ const postSchema = new Schema({
     type: String,
     required: false,
   },
-  author: { type: Schema.Types.ObjectId, ref: "User" },
   createOn: {
     type: Date,
     default: Date.now,

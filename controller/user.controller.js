@@ -50,6 +50,8 @@ const loginUser = async (req, res) => {
           status: "200",
           token,
           userId: getuser.id,
+          userName: getuser.fullName,
+          userImg: getuser.imgUrl,
           message: "Logedin successfully!",
         });
       } else {

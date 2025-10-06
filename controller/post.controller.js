@@ -37,13 +37,15 @@ const createPost = async (req, res) => {
 
 // Get all posts
 const getAllPost = async (req, res) => {
+  console.log('coooooo')
   try {
     const allPost = await Post.find({})
-      .populate("author", "fullName imgUrl")
       .sort({ createOn: -1 })
       .exec();
     res.send({ status: 200, data: allPost });
+    console.log(res)
   } catch (error) {
+    console.log(error.message)
     res.status(500).send(error.message);
   }
 };
@@ -135,8 +137,8 @@ const createComment = async (req, res) => {
                 postId,
                 userId,
                 comment,
-                replies: [],
-                Likes: [],
+                // replies: [],
+                // Likes: [],
               },
             ],
           },
