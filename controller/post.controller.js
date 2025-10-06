@@ -20,6 +20,7 @@ const createPost = async (req, res) => {
         postContent,
         postCategory,
         postImgUrl,
+        postLikes: [],
       });
       await newPost.save();
       res.send({
@@ -37,15 +38,13 @@ const createPost = async (req, res) => {
 
 // Get all posts
 const getAllPost = async (req, res) => {
-  console.log('coooooo')
+  console.log("coooooo");
   try {
-    const allPost = await Post.find({})
-      .sort({ createOn: -1 })
-      .exec();
+    const allPost = await Post.find({}).sort({ createOn: -1 }).exec();
     res.send({ status: 200, data: allPost });
-    console.log(res)
+    console.log(res);
   } catch (error) {
-    console.log(error.message)
+    console.log(error.message);
     res.status(500).send(error.message);
   }
 };
@@ -243,57 +242,70 @@ const createReply = async (req, res) => {
 
 // POST INTERACTION API
 const postInteraction = async (req, res) => {
-  const { userId, postId, likeType } = req.body;
+  const { userId, postId } = req.body;
   try {
     const post = await Post.find({ id: postId });
-    const user = post[0].Likes.find((like) => like.userId == userId);
-    const type = post[0].Likes.find(
-      (like) => (like.userId == userId && like.likeType) == likeType
-    );
-    if (user && type) {
-      const unlike = post[0]?.Likes.filter((like) => like.userId !== userId);
-      await Post.updateOne(
-        { id: postId, "Likes.userId": userId },
-        {
-          $set: {
-            Likes: unlike,
-          },
-        }
-      );
-      res.send({ status: "200", message: "Liked implemented" });
-    } else if (user) {
-      await Post.updateOne(
-        { id: postId, "Likes.userId": userId },
-        {
-          $set: { "Likes.$.likeType": likeType },
-        }
-      );
-      res.send({ status: "200", message: "Liked implemented" });
+    const alreadyLiked = post?.postLikes.find((like) => like.userId == userId);
+    if (alreadyLiked) {
+      post.postLikes = post?.postLikes.filter((like) => like.userId !== userId);
     } else {
-      await Post.updateOne(
-        { id: postId },
-        {
-          $set: {
-            Likes: [
-              ...post[0].Likes,
-              {
-                id: uuidv4(),
-                postId,
-                userId,
-                likeType,
-              },
-            ],
-          },
-        }
-      );
-      res.send({ status: "201", message: "Liked implemented" });
+      post.postLikes.push({ userId: userId });
     }
 
-    // }
+    await Post.save();
+    res.send({
+      status: 200,
+      message: alreadyLiked ? "already liked" : "Like implemented",
+      liked: !alreadyLiked,
+      postLikes: post.postLikes.length,
+    });
   } catch (error) {
     res.status(500).send(error.message);
   }
 };
+
+// const user = post[0].postLikes.find((like) => like.userId == userId);
+//     const type = post[0].postLikes.find(
+//       (like) => (like.userId == userId && like.likeType) == likeType
+//     );
+//     if (user && type) {
+//       const unlike = post[0]?.postLikes.filter((like) => like.userId !== userId);
+//       await Post.updateOne(
+//         { id: postId, "postLikes.userId": userId },
+//         {
+//           $set: {
+//             postLikes: unlike,
+//           },
+//         }
+//       );
+//       res.send({ status: "200", message: "Liked implemented" });
+//     } else if (user) {
+//       await Post.updateOne(
+//         { id: postId, "Likes.userId": userId },
+//         {
+//           $set: { "Likes.$.likeType": likeType },
+//         }
+//       );
+//       res.send({ status: "200", message: "Liked implemented" });
+//     } else {
+//       await Post.updateOne(
+//         { id: postId },
+//         {
+//           $set: {
+//             Likes: [
+//               ...post[0].Likes,
+//               {
+//                 id: uuidv4(),
+//                 postId,
+//                 userId,
+//                 likeType,
+//               },
+//             ],
+//           },
+//         }
+//       );
+//       res.send({ status: "201", message: "Liked implemented" });
+//     }
 
 // COMMENT LIKES API
 const commentLikes = async (req, res) => {
