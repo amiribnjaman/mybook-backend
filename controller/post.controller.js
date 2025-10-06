@@ -243,13 +243,14 @@ const createReply = async (req, res) => {
 // POST INTERACTION API
 const postInteraction = async (req, res) => {
   const { userId, postId } = req.body;
+  console.log(userId,postId)
   try {
     const post = await Post.find({ id: postId });
-    const alreadyLiked = post?.postLikes.find((like) => like.userId == userId);
+    const alreadyLiked = post?.likes.find((like) => like.userId == userId);
     if (alreadyLiked) {
-      post.postLikes = post?.postLikes.filter((like) => like.userId !== userId);
+      post?.Likes = post?.likes.filter((like) => like.userId !== userId);
     } else {
-      post.postLikes.push({ userId: userId });
+      post?.likes.push({ userId: userId });
     }
 
     await Post.save();
@@ -257,7 +258,7 @@ const postInteraction = async (req, res) => {
       status: 200,
       message: alreadyLiked ? "already liked" : "Like implemented",
       liked: !alreadyLiked,
-      postLikes: post.postLikes.length,
+      likes: post?.ikes.length,
     });
   } catch (error) {
     res.status(500).send(error.message);

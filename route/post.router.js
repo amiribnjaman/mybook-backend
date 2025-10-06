@@ -35,8 +35,8 @@ router.delete(
 // REPLY ROUTER
 router.patch("/create-reply", createReply);
 
-// REACT ROUTER
-router.patch("/post-likes", postInteraction)
+// INTERACTION ROUTER
+router.patch("/interaction", postInteraction)
 router.patch("/comment-likes", commentLikes)
 
 module.exports = router;
