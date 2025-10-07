@@ -245,11 +245,12 @@ const postInteraction = async (req, res) => {
   const { userId, postId } = req.body; 
 
   try {
-    const post = await Post.findOne({ id: postId }); field
+    const post = await Post.findOne({ id: postId });
      console.log(post);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
     const alreadyLiked = post?.likes.includes(userId);
+    console.log(alreadyLiked)
 
     if (alreadyLiked) {
       post.likes = post?.likes.filter((id) => id !== userId);
