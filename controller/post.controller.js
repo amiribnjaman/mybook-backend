@@ -40,7 +40,7 @@ const createPost = async (req, res) => {
 const getAllPost = async (req, res) => {
   console.log("coooooo");
   try {
-    const allPost = await Post.find({}).sort({ createOn: -1 }).exec();
+    const allPost = await Post.find({}).sort({ createOn: -1 });
     res.send({ status: 200, data: allPost });
     console.log(res);
   } catch (error) {
