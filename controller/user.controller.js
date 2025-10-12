@@ -65,6 +65,25 @@ const loginUser = async (req, res) => {
   }
 };
 
+// GET A SINGLE USER API
+const getSingleUser = async (req, res) => {
+  const { userId } = req.params;
+  console.log(userId);
+  try {
+    const getuser = await User.findOne({ id: userId });
+    if (getuser) {
+      res.send({
+        status: "200",
+        user: getuser,
+      });
+    } else {
+      res.send({ status: "404", message: "User not found!" });
+    }
+  } catch (error) {
+    res.send({ status: "500", error });
+  }
+};
+
 {
   /*
    ** Here first get user email and checking
@@ -296,6 +315,7 @@ const readNotification = async (req, res) => {
 module.exports = {
   signupUser,
   loginUser,
+  getSingleUser,
   forgotPassCheck,
   resetPassword,
   createNotification,
