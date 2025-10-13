@@ -56,7 +56,7 @@ const getOnePost = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (user) {
-      const post = await Post.findOne({ id: postId }, { post: 1, imgUrl: 1 });
+      const post = await Post.findOne({ id: postId });
       res.send({ status: 200, data: post });
     } else {
       res.send({ status: 401, message: "Unauthorized access" });
