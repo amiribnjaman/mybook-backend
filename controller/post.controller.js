@@ -21,6 +21,7 @@ const createPost = async (req, res) => {
         postCategory,
         postImgUrl,
         likes: [],
+        comments: []
       });
       await newPost.save();
       res.send({
@@ -54,7 +55,7 @@ const getOnePost = async (req, res) => {
   const { postId } = req.params;
   const { email } = req.decoded;
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).sort({'comments.createOn': -1});
     if (user) {
       const post = await Post.findOne({ id: postId });
       res.send({ status: 200, data: post });
@@ -118,7 +119,9 @@ const deletePost = async (req, res) => {
 }
 // Create a new comment
 const createComment = async (req, res) => {
-  const { postId, comment, userId } = req.body;
+  const { postId, userId, comment, } = req.body;
+  console.log(postId, userId, comment)
+
   const { email } = req.decoded;
 
   try {
@@ -136,6 +139,8 @@ const createComment = async (req, res) => {
                 postId,
                 userId,
                 comment,
+                userName: user.fullName,
+                userImg: user.imgUrl,
                 // replies: [],
                 // Likes: [],
               },
@@ -143,7 +148,7 @@ const createComment = async (req, res) => {
           },
         }
       );
-      res.send({ status: 200, data: comments });
+      res.send({ status: 200, data: post });
     } else {
       res.send({ status: 401, message: "Unauthorised access." });
     }

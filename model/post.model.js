@@ -37,6 +37,20 @@ const postSchema = new Schema({
     required: false,
   },
   likes: { type: [String], default: [] },
+  comments: [
+    {
+      id: String,
+      postId: String,
+      userId: String,
+      comment: String,
+      userName: String,
+      userImg: String,
+      createOn: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
   createOn: {
     type: Date,
     default: Date.now,
