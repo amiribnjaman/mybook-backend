@@ -9,12 +9,15 @@ const {
   createNotification,
   getNotification,
   readNotification,
+  toggleFollow,
 } = require("../controller/user.controller");
+const jwtAuthentication = require("../middleware/authentication");
 
 // Router
 router.post("/signup", signupUser);
 router.post("/login", loginUser);
 router.get("/getsingleuser/:userId", getSingleUser);
+router.patch("/toggle-follow", jwtAuthentication, toggleFollow);
 router.post("/forgot-pass-check", forgotPassCheck);
 router.patch("/password-reset", resetPassword);
 

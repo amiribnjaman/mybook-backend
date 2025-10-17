@@ -22,6 +22,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  following: { type: [String], default: [] },
+  followers: { type: [String], default: [] },
   createOn: {
     type: Date,
     default: Date.now,

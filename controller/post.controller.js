@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require("uuid");
 // Create a new post
 const createPost = async (req, res) => {
   const { userId, postTitle, postContent, postCategory, postImgUrl } = req.body;
-  console.log(userId, postTitle, postContent, postCategory, postImgUrl);
+  // console.log(userId, postTitle, postContent, postCategory, postImgUrl);
   // return
   const { email } = req.decoded;
   try {
@@ -21,7 +21,7 @@ const createPost = async (req, res) => {
         postCategory,
         postImgUrl,
         likes: [],
-        comments: []
+        comments: [],
       });
       await newPost.save();
       res.send({
@@ -39,11 +39,47 @@ const createPost = async (req, res) => {
 
 // Get all posts
 const getAllPost = async (req, res) => {
-  console.log("coooooo");
+  const { userId } = req.params;
+  console.log("coooooo", userId[0]);
+
   try {
-    const allPost = await Post.find({}).sort({ createOn: -1 });
+    const currentUser = await User.findOne({id: userId});
+    const followingIds = currentUser.following || []
+    console.log('user', currentUser)
+    // const allPost = await Post.find({}).sort({ createOn: -1 });
+    const allPost = await Post.aggregate([
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      {
+        $addFields: {
+          "user.isfollowing": {
+            $in: [{$toString: "$userId"}, followingIds],
+          },
+        },
+      },
+      {
+        $project: {
+          "user._id": 0,
+          "user.createOn": 0,
+          "user.email": 0,
+          "user.fullName": 0,
+          "user.password": 0,
+          "user.imgUrl": 0,
+          "user.followers": 0
+          
+        }
+      },
+      { $sort: { createOn: -1 } },
+    ]);
     res.send({ status: 200, data: allPost });
-    console.log(res);
+    // console.log(res);
   } catch (error) {
     console.log(error.message);
     res.status(500).send(error.message);
@@ -55,7 +91,9 @@ const getOnePost = async (req, res) => {
   const { postId } = req.params;
   const { email } = req.decoded;
   try {
-    const user = await User.findOne({ email }).sort({'comments.createOn': -1});
+    const user = await User.findOne({ email }).sort({
+      "comments.createOn": -1,
+    });
     if (user) {
       const post = await Post.findOne({ id: postId });
       res.send({ status: 200, data: post });
@@ -119,8 +157,8 @@ const deletePost = async (req, res) => {
 }
 // Create a new comment
 const createComment = async (req, res) => {
-  const { postId, userId, comment, } = req.body;
-  console.log(postId, userId, comment)
+  const { postId, userId, comment } = req.body;
+  console.log(postId, userId, comment);
 
   const { email } = req.decoded;
 
@@ -247,15 +285,15 @@ const createReply = async (req, res) => {
 
 // POST INTERACTION API
 const postInteraction = async (req, res) => {
-  const { userId, postId } = req.body; 
+  const { userId, postId } = req.body;
 
   try {
     const post = await Post.findOne({ id: postId });
-     console.log(post);
+    // console.log(post);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
     const alreadyLiked = post?.likes.includes(userId);
-    console.log(alreadyLiked)
+    console.log(alreadyLiked);
 
     if (alreadyLiked) {
       post.likes = post?.likes.filter((id) => id !== userId);

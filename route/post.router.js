@@ -20,7 +20,7 @@ const router = express.Router();
 // ROUTER
 // POST ROUTER
 router.post("/create", jwtAuthentication, createPost);
-router.get("/allpost", getAllPost);
+router.get("/allpost/:userId", getAllPost);
 router.get("/get-one/:postId", jwtAuthentication, getOnePost);
 router.patch("/update-post", jwtAuthentication, updatePost);
 router.delete("/deletePost/:userId/:postId", jwtAuthentication, deletePost);

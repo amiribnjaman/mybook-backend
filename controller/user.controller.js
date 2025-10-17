@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 // Create OR Signup a user
 const signupUser = async (req, res) => {
   const { fullName, email, password, imgUrl } = req.body;
-  console.log(fullName, email, password, imgUrl);
+  // console.log(fullName, email, password, imgUrl);
   // return
   try {
     const getuser = await User.findOne({ email: email });
@@ -91,6 +91,45 @@ const getSingleUser = async (req, res) => {
    ** For reset password
    */
 }
+
+// TOGGLE FOLLOW UNFOLLOW USER
+const toggleFollow = async (req, res) => {
+  const { userId, targetFollowId } = req.body;
+  console.log(userId, targetFollowId)
+  try {
+    const user = await User.findOne({ id: userId });
+    const targetFollowUser = await User.findOne({ id: targetFollowId });
+    console.log(targetFollowUser);
+
+    const alreadyFollow = user.following.includes(targetFollowId.toString());
+    console.log('follow length',user.following.length)
+    if (alreadyFollow) {
+      console.log("inside unfollow", user.following);
+      // UNFOLLOW USER
+      user.following = user.following.filter((id) => id.toString() != targetFollowId.toString());
+      targetFollowUser.followers = targetFollowUser.followers.filter(
+        (id) => id.toString() != userId.toString()
+      );
+
+      await user.save()
+      await targetFollowUser.save()
+      res.send({ status: "200", message: "User Unfollowed" });
+    } else {
+      // FOLLOW USER
+      console.log("inside follow");
+      user.following.push(targetFollowId.toString());
+      targetFollowUser.followers.push(userId.toString());
+
+      await user.save();
+      await targetFollowUser.save();
+      res.send({ status: "200", message: "User Followed" });
+      console.log(user, targetFollowUser)
+    }
+  } catch (error) {
+    res.send({ status: "500", error });
+  }
+};
+
 // Forgot password email check
 const forgotPassCheck = async (req, res) => {
   const { email } = req.body;
@@ -142,7 +181,7 @@ const resetPassword = async (req, res) => {
    */
 }
 const createNotification = async (req, res) => {
-  console.log("ok");
+  // console.log("ok");
   const { userId, type, postId } = req.body;
   try {
     const post = await Post.findOne({ id: postId });
@@ -321,4 +360,5 @@ module.exports = {
   createNotification,
   getNotification,
   readNotification,
+  toggleFollow,
 };
