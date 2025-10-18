@@ -40,13 +40,14 @@ const createPost = async (req, res) => {
 // Get all posts
 const getAllPost = async (req, res) => {
   const { userId } = req.params;
-  console.log("coooooo", userId[0]);
 
   try {
-    const currentUser = await User.findOne({id: userId});
-    const followingIds = currentUser.following || []
-    console.log('user', currentUser)
+    const currentUser = await User.findOne({ id: userId });
+    const followingIds = currentUser.following || [];
+    console.log("user", currentUser);
     // const allPost = await Post.find({}).sort({ createOn: -1 });
+
+    // GETTING ALL POST WITH USER FOLLOWING
     const allPost = await Post.aggregate([
       {
         $lookup: {
@@ -60,7 +61,7 @@ const getAllPost = async (req, res) => {
       {
         $addFields: {
           "user.isfollowing": {
-            $in: [{$toString: "$userId"}, followingIds],
+            $in: [{ $toString: "$userId" }, followingIds],
           },
         },
       },
@@ -72,9 +73,8 @@ const getAllPost = async (req, res) => {
           "user.fullName": 0,
           "user.password": 0,
           "user.imgUrl": 0,
-          "user.followers": 0
-          
-        }
+          "user.followers": 0,
+        },
       },
       { $sort: { createOn: -1 } },
     ]);
@@ -88,15 +88,51 @@ const getAllPost = async (req, res) => {
 
 // Get A Single post
 const getOnePost = async (req, res) => {
-  const { postId } = req.params;
+  const { userId, postId } = req.params;
+  console.log(userId, postId)
   const { email } = req.decoded;
   try {
-    const user = await User.findOne({ email }).sort({
-      "comments.createOn": -1,
-    });
+    const user = await User.findOne({ email })
+
     if (user) {
-      const post = await Post.findOne({ id: postId });
-      res.send({ status: 200, data: post });
+      // const post = await Post.findOne({ id: postId });
+      const currentUser = await User.findOne({ id: userId });
+      const followingIds = currentUser.following || [];
+
+      // GETTING SINGLE POST WITH USER FOLLOWING 
+      const post = await Post.aggregate([
+        {
+          $match: { id: postId },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "id",
+            as: "user",
+          },
+        },
+        { $unwind: "$user" },
+        {
+          $addFields: {
+            "user.isfollowing": {
+              $in: [{ $toString: "$userId" }, followingIds],
+            },
+          },
+        },
+        {
+          $project: {
+            "user._id": 0,
+            "user.createOn": 0,
+            "user.email": 0,
+            "user.fullName": 0,
+            "user.password": 0,
+            "user.imgUrl": 0,
+            "user.followers": 0,
+          },
+        }
+      ]);
+      res.send({ status: 200, data: post[0] });
     } else {
       res.send({ status: 401, message: "Unauthorized access" });
     }
