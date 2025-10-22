@@ -1,8 +1,18 @@
 const express = require("express");
-const { createOrgetConversation } = require("../controller/chat.controller");
+const {
+  createOrgetConversation,
+  getAllConversation,
+  createMessage,
+  getMessage,
+} = require("../controller/chat.controller");
 const router = express.Router();
 
 
-router.post("/conversation", createOrgetConversation);
+router.patch("/conversation", createOrgetConversation);
+router.get("/:userId", getAllConversation);
+
+router.get("/:conversationId", getMessage);
+
+router.post("/message", createMessage);
 
 module.exports = router;
