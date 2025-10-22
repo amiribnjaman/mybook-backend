@@ -12,7 +12,6 @@ router.patch("/conversation", createOrgetConversation);
 router.get("/conversation/:userId", getAllConversation);
 
 router.get("/message/:conversationId", getMessage);
-
 router.post("/message", createMessage);
 
 module.exports = router;

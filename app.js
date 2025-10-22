@@ -9,7 +9,7 @@ require("./config/db");
 const userRouter = require("./route/user.router");
 const postRouter = require("./route/post.router");
 const chatRouter = require("./route/chat.router");
-const { initSocket } = require("./middleware/socket");
+// const { initSocket } = require("./middleware/socket.js");
 
 const corsOptions = {
   origin: true,
@@ -31,7 +31,7 @@ app.use(
 );
 
 // INITIALIZED SOCKET.IO
-initSocket(server);
+// initSocket(server);
 
 // Application Routes
 // User route

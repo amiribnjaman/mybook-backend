@@ -11,7 +11,10 @@ const createOrgetConversation = async (req, res) => {
       members: { $all: [senderId, recieverId] },
     });
     if (!conversation) {
-      conversation = new Conversation({ members: [senderId, recieverId] });
+      conversation = new Conversation({
+        id: uuidv4(),
+        members: [senderId, recieverId],
+      });
       await conversation.save();
     }
 
@@ -31,9 +34,14 @@ const getAllConversation = async (req, res) => {
 
 // CREATE MESSAGE ON DB
 const createMessage = async (req, res) => {
-  const { conversationId, sender, text } = req.body;
+  const { conversationId, senderId, text } = req.body;
   try {
-    const msg = new Message({ conversationId, sender, text });
+    const msg = new Message({
+      id: uuidv4(),
+      conversationId,
+      senderId,
+      text,
+    });
     await msg.save();
     await Conversation.findOneAndUpdate(conversationId, { lastMessage: text });
 
