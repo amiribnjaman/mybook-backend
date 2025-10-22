@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser")
 require("./config/db");
 const userRouter = require("./route/user.router");
 const postRouter = require("./route/post.router");
+const chatRouter = require("./route/chat.router");
 
 const corsOptions = {
   origin: true,
@@ -33,6 +34,8 @@ app.use(
 app.use("/api/user", userRouter);
 // Post route
 app.use("/api/post", postRouter);
+// Chat route
+app.use("/api/chat", chatRouter);
 
 // Testing route
 app.get("/", (req, res) => {
