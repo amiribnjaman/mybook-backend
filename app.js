@@ -1,11 +1,15 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const cookieParser = require("cookie-parser")
+
+const http = require("http");
+const server = http.createServer(app);
+const cookieParser = require("cookie-parser");
 require("./config/db");
 const userRouter = require("./route/user.router");
 const postRouter = require("./route/post.router");
 const chatRouter = require("./route/chat.router");
+const { initSocket } = require("./middleware/socket");
 
 const corsOptions = {
   origin: true,
@@ -16,18 +20,18 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
 
 // Cors origin settings
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "https://knectt.netlify.app/",
-    ],
+    origin: ["http://localhost:3000", "https://knectt.netlify.app/"],
     credentials: true,
   })
-)
+);
+
+// INITIALIZED SOCKET.IO
+initSocket(server);
 
 // Application Routes
 // User route

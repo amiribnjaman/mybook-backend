@@ -9,9 +9,9 @@ const router = express.Router();
 
 
 router.patch("/conversation", createOrgetConversation);
-router.get("/:userId", getAllConversation);
+router.get("/conversation/:userId", getAllConversation);
 
-router.get("/:conversationId", getMessage);
+router.get("/message/:conversationId", getMessage);
 
 router.post("/message", createMessage);
 
